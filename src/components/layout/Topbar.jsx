@@ -75,7 +75,7 @@ export const Topbar = () => {
         </Link>
         <Link
           to="/"
-          className="flex items-center gap-2 text-sm hover:text-primary transition-colors hidden md:flex"
+          className=" items-center gap-2 text-sm hover:text-primary transition-colors hidden md:flex"
         >
           <Home className="h-4 w-4" />
           <span>Home</span>
