@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronDown,
   ShieldAlert,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ export const Sidebar = () => {
         return [
           { to: "/admin-dashboard", icon: LayoutDashboard, label: "Dashboard" },
           { to: "/users", icon: Users, label: "User Management" },
+          { to: "/groups", icon: UserCheck, label: "Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "HIRA" },
           { to: "/training", icon: GraduationCap, label: "Training" },
           { to: "/checklists", icon: CheckSquare, label: "Checklists" },
@@ -41,6 +43,7 @@ export const Sidebar = () => {
             icon: LayoutDashboard,
             label: "Dashboard",
           },
+          { to: "/groups", icon: UserCheck, label: "My Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "HIRA" },
           { to: "/checklists", icon: CheckSquare, label: "Checklists" },
           { to: "/notifications", icon: Bell, label: "Notifications" },
@@ -54,6 +57,7 @@ export const Sidebar = () => {
             icon: LayoutDashboard,
             label: "Dashboard",
           },
+          { to: "/groups", icon: UserCheck, label: "My Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "HIRA" },
           { to: "/checklists", icon: CheckSquare, label: "Checklists" },
           { to: "/notifications", icon: Bell, label: "Notifications" },
@@ -62,6 +66,7 @@ export const Sidebar = () => {
         ];
       case "employee":
         const items = [
+          { to: "/groups", icon: UserCheck, label: "My Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "Report HIRA" },
           { to: "/alerts", icon: ShieldAlert, label: "Alerts" },
           { to: "/notifications", icon: Bell, label: "Notifications" },

@@ -63,6 +63,10 @@ const Notifications = () => {
     title: "",
     message: "",
   });
+  const [groups] = useState(() => {
+    const stored = localStorage.getItem("groups");
+    return stored ? JSON.parse(stored) : [];
+  });
 
   // Load notifications from localStorage on component mount
   useEffect(() => {
@@ -252,11 +256,29 @@ const Notifications = () => {
     setIsEditDialogOpen(true);
   };
 
-  const filteredNotifications = notifications.filter(
-    (notification) =>
-      notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notification.message.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getFilteredNotifications = () => {
+    let filtered = notifications.filter(
+      (notification) =>
+        notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        notification.message.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // For non-admin users, filter to show only their group notifications and general notifications
+    if (user?.role !== "admin") {
+      const userGroupIds = groups
+        .filter((group) => group.members.includes(user?.id))
+        .map((group) => group.id);
+
+      filtered = filtered.filter(
+        (notification) =>
+          !notification.groupId || userGroupIds.includes(notification.groupId)
+      );
+    }
+
+    return filtered;
+  };
+
+  const filteredNotifications = getFilteredNotifications();
 
   return (
     <DashboardLayout>

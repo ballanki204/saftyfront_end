@@ -58,13 +58,34 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { dummyUsers } from "@/data";
 import jsPDF from "jspdf";
-import { createUserNotification } from "@/lib/notificationUtils";
+import {
+  createUserNotification,
+  createGroupNotification,
+} from "@/lib/notificationUtils";
 
 const Users = () => {
   const { user: loggedInUser } = useAuth();
   const [users, setUsers] = useState(() => {
     const stored = localStorage.getItem("dummyUsers");
     return stored ? JSON.parse(stored) : dummyUsers;
+  });
+  const [groups, setGroups] = useState(() => {
+    const stored = localStorage.getItem("groups");
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
+  const [isMemberSelectionDialogOpen, setIsMemberSelectionDialogOpen] =
+    useState(false);
+  const [groupFormData, setGroupFormData] = useState({
+    name: "",
+    members: [],
+    permissions: {
+      manage_users: false,
+      view_reports: false,
+      create_hazards: false,
+      manage_checklists: false,
+      view_training: false,
+    },
   });
 
   useEffect(() => {
@@ -247,6 +268,42 @@ const Users = () => {
       user.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleCreateGroup = () => {
+    if (!groupFormData.name || groupFormData.members.length === 0) {
+      toast.error("Please provide a group name and select at least one member");
+      return;
+    }
+
+    const newGroup = {
+      id: Date.now(),
+      name: groupFormData.name,
+      members: groupFormData.members,
+      permissions: groupFormData.permissions,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedGroups = [...groups, newGroup];
+    setGroups(updatedGroups);
+    localStorage.setItem("groups", JSON.stringify(updatedGroups));
+
+    // Notify group members
+    createGroupNotification("create", newGroup, newGroup.members);
+
+    setGroupFormData({
+      name: "",
+      members: [],
+      permissions: {
+        manage_users: false,
+        view_reports: false,
+        create_hazards: false,
+        manage_checklists: false,
+        view_training: false,
+      },
+    });
+    setIsCreateGroupDialogOpen(false);
+    toast.success("Group created successfully");
+  };
+
   const handleDownloadPDF = () => {
     try {
       const doc = new jsPDF();
@@ -298,117 +355,211 @@ const Users = () => {
             </p>
           </div>
           {loggedInUser?.role === "admin" && (
-            <Dialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add User
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New User</DialogTitle>
-                  <DialogDescription>
-                    Create a new user account with appropriate permissions.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        placeholder="Enter full name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        placeholder="Enter email address"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select
-                        value={formData.role}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, role: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Admin">Admin</SelectItem>
-                          <SelectItem value="Safety Manager">
-                            Safety Manager
-                          </SelectItem>
-                          <SelectItem value="Supervisor">Supervisor</SelectItem>
-                          <SelectItem value="Employee">Employee</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="department">Department</Label>
-                      <Input
-                        id="department"
-                        value={formData.department}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            department: e.target.value,
-                          })
-                        }
-                        placeholder="Enter department"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, status: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex justify-end gap-2">
+            <div className="flex gap-2">
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add User
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+              <Dialog
+                open={isCreateGroupDialogOpen}
+                onOpenChange={setIsCreateGroupDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Group
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          )}
+        </div>
+
+        {/* Create Group Dialog */}
+        {loggedInUser?.role === "admin" && (
+          <Dialog
+            open={isCreateGroupDialogOpen}
+            onOpenChange={setIsCreateGroupDialogOpen}
+          >
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Create New Group</DialogTitle>
+                <DialogDescription>
+                  Create a group with members and assign permissions.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="group-name">Group Name</Label>
+                  <Input
+                    id="group-name"
+                    value={groupFormData.name}
+                    onChange={(e) =>
+                      setGroupFormData({
+                        ...groupFormData,
+                        name: e.target.value,
+                      })
+                    }
+                    placeholder="Enter group name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Members</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={`${groupFormData.members.length} members selected`}
+                      readOnly
+                      className="flex-1"
+                    />
                     <Button
                       variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
+                      onClick={() => setIsMemberSelectionDialogOpen(true)}
+                    >
+                      Select Members
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Permissions</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.keys(groupFormData.permissions).map((perm) => (
+                      <div key={perm} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`perm-${perm}`}
+                          checked={groupFormData.permissions[perm]}
+                          onChange={(e) =>
+                            setGroupFormData({
+                              ...groupFormData,
+                              permissions: {
+                                ...groupFormData.permissions,
+                                [perm]: e.target.checked,
+                              },
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor={`perm-${perm}`}
+                          className="text-sm capitalize"
+                        >
+                          {perm.replace("_", " ")}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateGroupDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateGroup}>Create Group</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Member Selection Dialog */}
+        {loggedInUser?.role === "admin" && (
+          <Dialog
+            open={isMemberSelectionDialogOpen}
+            onOpenChange={setIsMemberSelectionDialogOpen}
+          >
+            <DialogContent className="max-w-4xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle>Select Group Members</DialogTitle>
+                <DialogDescription>
+                  Choose users to add to this group. Only approved users are
+                  shown.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="overflow-y-auto max-h-96">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">Select</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Department</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users
+                        .filter((user) => user.approved)
+                        .map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell>
+                              <input
+                                type="checkbox"
+                                id={`select-member-${user.id}`}
+                                checked={groupFormData.members.includes(
+                                  user.id
+                                )}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setGroupFormData({
+                                      ...groupFormData,
+                                      members: [
+                                        ...groupFormData.members,
+                                        user.id,
+                                      ],
+                                    });
+                                  } else {
+                                    setGroupFormData({
+                                      ...groupFormData,
+                                      members: groupFormData.members.filter(
+                                        (id) => id !== user.id
+                                      ),
+                                    });
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {user.name}
+                            </TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{getRoleBadge(user.role)}</TableCell>
+                            <TableCell>{user.department}</TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">
+                    {groupFormData.members.length} members selected
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsMemberSelectionDialogOpen(false)}
                     >
                       Cancel
                     </Button>
-                    <Button onClick={handleCreate}>Create User</Button>
+                    <Button
+                      onClick={() => setIsMemberSelectionDialogOpen(false)}
+                    >
+                      Done
+                    </Button>
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
         <Card className="relative">
           <CardHeader>
@@ -422,17 +573,12 @@ const Users = () => {
                   className="flex-1"
                 />
               </div>
+              <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
             </div>
           </CardHeader>
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute top-4 right-4"
-            onClick={handleDownloadPDF}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
           <CardContent>
             <div className="overflow-x-auto">
               <Table className="min-w-[1200px]">

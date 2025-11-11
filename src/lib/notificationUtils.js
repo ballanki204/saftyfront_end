@@ -189,3 +189,64 @@ export const createAlertNotification = (action, alertData) => {
 
   return createSystemNotification(type, title, message);
 };
+
+// Group-related notifications (for group members only)
+export const createGroupNotification = (action, groupData, memberIds) => {
+  let title, message, type;
+
+  switch (action) {
+    case "create":
+      title = "New Group Created";
+      message = `You have been added to the group "${groupData.name}".`;
+      type = "info";
+      break;
+    case "update":
+      title = "Group Updated";
+      message = `The group "${groupData.name}" has been updated.`;
+      type = "warning";
+      break;
+    case "add_member":
+      title = "Added to Group";
+      message = `You have been added to the group "${groupData.name}".`;
+      type = "info";
+      break;
+    case "remove_member":
+      title = "Removed from Group";
+      message = `You have been removed from the group "${groupData.name}".`;
+      type = "alert";
+      break;
+    case "change_permissions":
+      title = "Group Permissions Changed";
+      message = `Permissions for group "${groupData.name}" have been updated.`;
+      type = "warning";
+      break;
+    default:
+      return;
+  }
+
+  // Create group-specific notification for each member
+  const existingNotifications = JSON.parse(
+    localStorage.getItem("notifications") || "[]"
+  );
+
+  memberIds.forEach((memberId) => {
+    const groupNotification = {
+      id: Date.now() + memberId, // Unique ID per member
+      type: type,
+      title: title,
+      message: message,
+      time: new Date().toISOString(),
+      read: false,
+      groupId: groupData.id,
+      memberId: memberId,
+    };
+    existingNotifications.unshift(groupNotification);
+  });
+
+  localStorage.setItem("notifications", JSON.stringify(existingNotifications));
+
+  // Dispatch custom event to notify other components
+  window.dispatchEvent(new Event("notificationsUpdated"));
+
+  return existingNotifications[0]; // Return the first notification as reference
+};
