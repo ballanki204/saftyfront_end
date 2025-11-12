@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import { getUserPermissions } from "@/lib/permissionUtils";
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
@@ -38,6 +39,7 @@ const EmployeeDashboard = () => {
   const [hazards, setHazards] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [showApprovalPopup, setShowApprovalPopup] = useState(false);
+  const [groups, setGroups] = useState([]);
 
   // Load hazards and notifications from localStorage
   useEffect(() => {
@@ -55,10 +57,20 @@ const EmployeeDashboard = () => {
 
     loadNotifications();
 
+    // Load groups
+    const storedGroups = localStorage.getItem("groups");
+    if (storedGroups) {
+      setGroups(JSON.parse(storedGroups));
+    }
+
     // Listen for storage changes to update notifications in real-time
     const handleStorageChange = (e) => {
       if (e.key === "notifications") {
         loadNotifications();
+      }
+      if (e.key === "groups") {
+        const stored = localStorage.getItem("groups");
+        setGroups(stored ? JSON.parse(stored) : []);
       }
     };
 
@@ -133,6 +145,27 @@ const EmployeeDashboard = () => {
     },
   ];
 
+  // Determine which sections the current user is allowed to see based on group permissions
+  const userPermissions = user ? getUserPermissions(user.id) : {};
+
+  // Get user's groups
+  const userGroups = user
+    ? groups.filter((g) => g.members && g.members.includes(user.id))
+    : [];
+
+  // Filter stats according to permissions (if a section is not allowed, hide it)
+  const filteredStats = stats.filter((stat) => {
+    if (stat.label === "My Checklists" && !userPermissions.checklists)
+      return false;
+    if (stat.label === "Active Hazards" && !userPermissions.hazards)
+      return false;
+    if (stat.label === "Pending Tasks" && !userPermissions.reports)
+      return false;
+    if (stat.label === "Notifications" && !userPermissions.notifications)
+      return false;
+    return true;
+  });
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -144,7 +177,7 @@ const EmployeeDashboard = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {filteredStats.map((stat) => (
             <Card
               key={stat.label}
               className="cursor-pointer hover:shadow-md transition-shadow"
@@ -180,22 +213,36 @@ const EmployeeDashboard = () => {
                 <Plus className="mr-2 h-4 w-4" />
                 Report Hazard
               </Button>
-              <Button
-                onClick={() => navigate("/checklists")}
-                variant="outline"
-                className="w-full justify-start"
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Complete Checklist
-              </Button>
-              <Button
-                onClick={() => navigate("/notifications")}
-                variant="outline"
-                className="w-full justify-start"
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                View Notifications
-              </Button>
+              {userPermissions.hazards && (
+                <Button
+                  onClick={() => navigate("/hazards")}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  View Hazards
+                </Button>
+              )}
+              {userPermissions.checklists && (
+                <Button
+                  onClick={() => navigate("/checklists")}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Complete Checklist
+                </Button>
+              )}
+              {userPermissions.notifications && (
+                <Button
+                  onClick={() => navigate("/notifications")}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  View Notifications
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -280,6 +327,59 @@ const EmployeeDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>My Groups</CardTitle>
+            <CardDescription>Groups you are assigned to</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {userGroups.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                You are not assigned to any groups yet.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {userGroups.map((group) => (
+                  <div
+                    key={group.id}
+                    className="p-4 border rounded-lg bg-muted/5"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{group.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {group.members.length} members
+                        </p>
+                      </div>
+                    </div>
+                    {group.permissions && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {Object.entries(group.permissions).map(([section, perms]) => {
+                          // Handle both legacy boolean and CRUD shapes
+                          const hasPermission =
+                            typeof perms === "boolean"
+                              ? perms
+                              : perms && (perms.read || perms.create || perms.update || perms.delete);
+                          
+                          return hasPermission ? (
+                            <Badge
+                              key={section}
+                              variant="outline"
+                              className="text-xs bg-primary/10"
+                            >
+                              {section.replace("_", " ")}
+                            </Badge>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

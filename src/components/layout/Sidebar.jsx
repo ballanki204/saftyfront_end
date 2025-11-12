@@ -29,11 +29,11 @@ export const Sidebar = () => {
         return [
           { to: "/admin-dashboard", icon: LayoutDashboard, label: "Dashboard" },
           { to: "/users", icon: Users, label: "User Management" },
-          { to: "/groups", icon: UserCheck, label: "Groups" },
+          // { to: "/groups", icon: UserCheck, label: "Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "HIRA" },
           { to: "/training", icon: GraduationCap, label: "Training" },
           { to: "/checklists", icon: CheckSquare, label: "Checklists" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
+          // { to: "/notifications", icon: Bell, label: "Notifications" },
           { to: "/analytics", icon: BarChart3, label: "Reports" },
         ];
       case "safety_manager":
@@ -46,7 +46,7 @@ export const Sidebar = () => {
           { to: "/groups", icon: UserCheck, label: "My Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "HIRA" },
           { to: "/checklists", icon: CheckSquare, label: "Checklists" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
+          // { to: "/notifications", icon: Bell, label: "Notifications" },
           { to: "/analytics", icon: BarChart3, label: "Analytics" },
           { to: "/alerts", icon: ShieldAlert, label: "Alerts" },
         ];
@@ -60,7 +60,7 @@ export const Sidebar = () => {
           { to: "/groups", icon: UserCheck, label: "My Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "HIRA" },
           { to: "/checklists", icon: CheckSquare, label: "Checklists" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
+          // { to: "/notifications", icon: Bell, label: "Notifications" },
           { to: "/analytics", icon: BarChart3, label: "Analytics" },
           { to: "/alerts", icon: ShieldAlert, label: "Alerts" },
         ];
@@ -69,7 +69,7 @@ export const Sidebar = () => {
           { to: "/groups", icon: UserCheck, label: "My Groups" },
           { to: "/hazards", icon: AlertTriangle, label: "Report HIRA" },
           { to: "/alerts", icon: ShieldAlert, label: "Alerts" },
-          { to: "/notifications", icon: Bell, label: "Notifications" },
+          // { to: "/notifications", icon: Bell, label: "Notifications" },
           {
             to: user?.approved ? "/checklists" : null,
             icon: CheckSquare,

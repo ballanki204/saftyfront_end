@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
   Card,
@@ -65,13 +66,78 @@ import {
 
 const Users = () => {
   const { user: loggedInUser } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState(() => {
     const stored = localStorage.getItem("dummyUsers");
     return stored ? JSON.parse(stored) : dummyUsers;
   });
   const [groups, setGroups] = useState(() => {
     const stored = localStorage.getItem("groups");
-    return stored ? JSON.parse(stored) : [];
+    const raw = stored ? JSON.parse(stored) : [];
+    // migrate older permission shapes (boolean flags) to CRUD per-section
+    const migratePermissions = (perms) => {
+      if (!perms)
+        return {
+          users: { create: false, read: false, update: false, delete: false },
+          reports: { create: false, read: false, update: false, delete: false },
+          hazards: { create: false, read: false, update: false, delete: false },
+          checklists: {
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+          },
+          training: {
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+          },
+        };
+
+      // detect if already CRUD-shaped
+      const first = Object.values(perms)[0];
+      if (first && typeof first === "object") return perms;
+
+      // otherwise, map legacy boolean flags to sensible CRUD defaults
+      return {
+        users: {
+          create: !!perms.manage_users,
+          read: !!perms.view_reports || !!perms.manage_users,
+          update: !!perms.manage_users,
+          delete: !!perms.manage_users,
+        },
+        reports: {
+          create: false,
+          read: !!perms.view_reports,
+          update: false,
+          delete: false,
+        },
+        hazards: {
+          create: !!perms.create_hazards,
+          read: !!perms.create_hazards,
+          update: !!perms.create_hazards,
+          delete: false,
+        },
+        checklists: {
+          create: !!perms.manage_checklists,
+          read: !!perms.manage_checklists,
+          update: !!perms.manage_checklists,
+          delete: !!perms.manage_checklists,
+        },
+        training: {
+          create: false,
+          read: !!perms.view_training,
+          update: false,
+          delete: false,
+        },
+      };
+    };
+
+    return raw.map((g) => ({
+      ...g,
+      permissions: migratePermissions(g.permissions),
+    }));
   });
   const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
   const [isMemberSelectionDialogOpen, setIsMemberSelectionDialogOpen] =
@@ -79,12 +145,13 @@ const Users = () => {
   const [groupFormData, setGroupFormData] = useState({
     name: "",
     members: [],
+    // permissions now supports CRUD per section
     permissions: {
-      manage_users: false,
-      view_reports: false,
-      create_hazards: false,
-      manage_checklists: false,
-      view_training: false,
+      users: { create: false, read: false, update: false, delete: false },
+      reports: { create: false, read: false, update: false, delete: false },
+      hazards: { create: false, read: false, update: false, delete: false },
+      checklists: { create: false, read: false, update: false, delete: false },
+      training: { create: false, read: false, update: false, delete: false },
     },
   });
 
@@ -110,6 +177,7 @@ const Users = () => {
     role: "",
     status: "Active",
     department: "",
+    password: "",
   });
 
   const getRoleBadge = (role) => {
@@ -130,7 +198,8 @@ const Users = () => {
       !formData.name ||
       !formData.email ||
       !formData.role ||
-      !formData.department
+      !formData.department ||
+      !formData.password
     ) {
       toast.error("Please fill in all required fields");
       return;
@@ -146,6 +215,7 @@ const Users = () => {
       id: Date.now(),
       name: formData.name,
       email: formData.email,
+      password: formData.password,
       role: formData.role,
       status: formData.status,
       department: formData.department,
@@ -162,6 +232,7 @@ const Users = () => {
       role: "",
       status: "Active",
       department: "",
+      password: "",
     });
     setIsCreateDialogOpen(false);
 
@@ -278,6 +349,7 @@ const Users = () => {
       id: Date.now(),
       name: groupFormData.name,
       members: groupFormData.members,
+      // store CRUD permissions per section
       permissions: groupFormData.permissions,
       createdAt: new Date().toISOString(),
     };
@@ -293,11 +365,16 @@ const Users = () => {
       name: "",
       members: [],
       permissions: {
-        manage_users: false,
-        view_reports: false,
-        create_hazards: false,
-        manage_checklists: false,
-        view_training: false,
+        users: { create: false, read: false, update: false, delete: false },
+        reports: { create: false, read: false, update: false, delete: false },
+        hazards: { create: false, read: false, update: false, delete: false },
+        checklists: {
+          create: false,
+          read: false,
+          update: false,
+          delete: false,
+        },
+        training: { create: false, read: false, update: false, delete: false },
       },
     });
     setIsCreateGroupDialogOpen(false);
@@ -366,6 +443,125 @@ const Users = () => {
                     Add User
                   </Button>
                 </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Create User</DialogTitle>
+                      <DialogDescription>
+                        Add a new user to the system.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="create-name">Name</Label>
+                          <Input
+                            id="create-name"
+                            value={formData.name}
+                            onChange={(e) =>
+                              setFormData({ ...formData, name: e.target.value })
+                            }
+                            placeholder="Enter full name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-email">Email</Label>
+                          <Input
+                            id="create-email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) =>
+                              setFormData({ ...formData, email: e.target.value })
+                            }
+                            placeholder="Enter email address"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="create-password">Password</Label>
+                          <Input
+                            id="create-password"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) =>
+                              setFormData({ ...formData, password: e.target.value })
+                            }
+                            placeholder="Enter password"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-role">Role</Label>
+                          <Select
+                            value={formData.role}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, role: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Admin">Admin</SelectItem>
+                              <SelectItem value="Safety Manager">
+                                Safety Manager
+                              </SelectItem>
+                              <SelectItem value="Supervisor">Supervisor</SelectItem>
+                              <SelectItem value="Employee">Employee</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="create-department">Department</Label>
+                          <Input
+                            id="create-department"
+                            value={formData.department}
+                            onChange={(e) =>
+                              setFormData({ ...formData, department: e.target.value })
+                            }
+                            placeholder="Enter department"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="create-status">Status</Label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, status: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Active">Active</SelectItem>
+                              <SelectItem value="Inactive">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsCreateDialogOpen(false);
+                            setFormData({
+                              name: "",
+                              email: "",
+                              role: "",
+                              status: "Active",
+                              department: "",
+                              password: "",
+                            });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button onClick={handleCreate}>Create User</Button>
+                      </div>
+                    </div>
+                  </DialogContent>
               </Dialog>
               <Dialog
                 open={isCreateGroupDialogOpen}
@@ -378,6 +574,12 @@ const Users = () => {
                   </Button>
                 </DialogTrigger>
               </Dialog>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/groups")}
+              >
+                See Groups
+              </Button>
             </div>
           )}
         </div>
@@ -428,31 +630,50 @@ const Users = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Permissions</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.keys(groupFormData.permissions).map((perm) => (
-                      <div key={perm} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`perm-${perm}`}
-                          checked={groupFormData.permissions[perm]}
-                          onChange={(e) =>
-                            setGroupFormData({
-                              ...groupFormData,
-                              permissions: {
-                                ...groupFormData.permissions,
-                                [perm]: e.target.checked,
-                              },
-                            })
-                          }
-                        />
-                        <Label
-                          htmlFor={`perm-${perm}`}
-                          className="text-sm capitalize"
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.keys(groupFormData.permissions).map((section) => {
+                      const perms = groupFormData.permissions[section];
+                      return (
+                        <div
+                          key={section}
+                          className="p-2 border rounded-md bg-muted/5"
                         >
-                          {perm.replace("_", " ")}
-                        </Label>
-                      </div>
-                    ))}
+                          <div className="text-sm font-medium capitalize mb-2">
+                            {section.replace("_", " ")}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {["create", "read", "update", "delete"].map(
+                              (op) => (
+                                <label
+                                  key={op}
+                                  className="inline-flex items-center gap-2 text-sm"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={!!perms[op]}
+                                    onChange={(e) =>
+                                      setGroupFormData({
+                                        ...groupFormData,
+                                        permissions: {
+                                          ...groupFormData.permissions,
+                                          [section]: {
+                                            ...groupFormData.permissions[
+                                              section
+                                            ],
+                                            [op]: e.target.checked,
+                                          },
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <span className="capitalize">{op}</span>
+                                </label>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex justify-end gap-2">
