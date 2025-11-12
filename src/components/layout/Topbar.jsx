@@ -11,10 +11,11 @@ import {
   Edit,
   User,
   Settings,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
@@ -23,8 +24,11 @@ import { cn } from "@/lib/utils";
 
 export const Topbar = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isManagementOpen, setIsManagementOpen] = useState(false);
 
   useEffect(() => {
     const loadNotifications = () => {
@@ -80,27 +84,6 @@ export const Topbar = () => {
           <Home className="h-4 w-4" />
           <span>Home</span>
         </Link>
-        {/* <Link
-          to="#services"
-          className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
-        >
-          <Briefcase className="h-4 w-4" />
-          <span>Services</span>
-        </Link>
-        <Link
-          to="#about"
-          className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
-        >
-          <Info className="h-4 w-4" />
-          <span>About</span>
-        </Link>
-        <Link
-          to="#contact"
-          className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
-        >
-          <Mail className="h-4 w-4" />
-          <span>Contact</span>
-        </Link> */}
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">

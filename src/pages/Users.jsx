@@ -178,6 +178,7 @@ const Users = () => {
     status: "Active",
     department: "",
     password: "",
+    confirmPassword: "",
   });
 
   const getRoleBadge = (role) => {
@@ -199,9 +200,16 @@ const Users = () => {
       !formData.email ||
       !formData.role ||
       !formData.department ||
-      !formData.password
+      !formData.password ||
+      !formData.confirmPassword
     ) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Check if passwords match
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -233,6 +241,7 @@ const Users = () => {
       status: "Active",
       department: "",
       password: "",
+      confirmPassword: "",
     });
     setIsCreateDialogOpen(false);
 
@@ -450,7 +459,7 @@ const Users = () => {
                       Add a new user to the system.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="create-name">Name</Label>
@@ -493,6 +502,25 @@ const Users = () => {
                         />
                       </div>
                       <div className="space-y-2">
+                        <Label htmlFor="create-confirm-password">
+                          Confirm Password
+                        </Label>
+                        <Input
+                          id="create-confirm-password"
+                          type="password"
+                          value={formData.confirmPassword}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              confirmPassword: e.target.value,
+                            })
+                          }
+                          placeholder="Confirm password"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
                         <Label htmlFor="create-role">Role</Label>
                         <Select
                           value={formData.role}
@@ -515,22 +543,6 @@ const Users = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="create-department">Department</Label>
-                        <Input
-                          id="create-department"
-                          value={formData.department}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              department: e.target.value,
-                            })
-                          }
-                          placeholder="Enter department"
-                        />
-                      </div>
                       <div className="space-y-2">
                         <Label htmlFor="create-status">Status</Label>
                         <Select
@@ -549,6 +561,20 @@ const Users = () => {
                         </Select>
                       </div>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="create-department">Department</Label>
+                      <Input
+                        id="create-department"
+                        value={formData.department}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            department: e.target.value,
+                          })
+                        }
+                        placeholder="Enter department"
+                      />
+                    </div>
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
@@ -561,6 +587,7 @@ const Users = () => {
                             status: "Active",
                             department: "",
                             password: "",
+                            confirmPassword: "",
                           });
                         }}
                       >
@@ -582,9 +609,6 @@ const Users = () => {
                   </Button>
                 </DialogTrigger>
               </Dialog>
-              <Button variant="outline" onClick={() => navigate("/groups")}>
-                See Groups
-              </Button>
             </div>
           )}
         </div>

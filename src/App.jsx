@@ -18,6 +18,7 @@ import Checklists from "./pages/Checklists";
 import Notifications from "./pages/Notifications";
 import Analytics from "./pages/Analytics";
 import Users from "./pages/Users";
+import UserManagement from "./pages/UserManagement";
 import Groups from "./pages/Groups";
 import SystemSettings from "./pages/SystemSettings";
 import SystemTheme from "./pages/SystemTheme";
@@ -136,7 +137,7 @@ const App = () => (
               path="/users"
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
-                  <Users />
+                  <UserManagement />
                 </ProtectedRoute>
               }
             />
