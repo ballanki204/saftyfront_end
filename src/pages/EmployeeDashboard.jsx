@@ -355,23 +355,29 @@ const EmployeeDashboard = () => {
                     </div>
                     {group.permissions && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {Object.entries(group.permissions).map(([section, perms]) => {
-                          // Handle both legacy boolean and CRUD shapes
-                          const hasPermission =
-                            typeof perms === "boolean"
-                              ? perms
-                              : perms && (perms.read || perms.create || perms.update || perms.delete);
-                          
-                          return hasPermission ? (
-                            <Badge
-                              key={section}
-                              variant="outline"
-                              className="text-xs bg-primary/10"
-                            >
-                              {section.replace("_", " ")}
-                            </Badge>
-                          ) : null;
-                        })}
+                        {Object.entries(group.permissions).map(
+                          ([section, perms]) => {
+                            // Handle both legacy boolean and CRUD shapes
+                            const hasPermission =
+                              typeof perms === "boolean"
+                                ? perms
+                                : perms &&
+                                  (perms.read ||
+                                    perms.create ||
+                                    perms.update ||
+                                    perms.delete);
+
+                            return hasPermission ? (
+                              <Badge
+                                key={section}
+                                variant="outline"
+                                className="text-xs bg-primary/10"
+                              >
+                                {section.replace("_", " ")}
+                              </Badge>
+                            ) : null;
+                          }
+                        )}
                       </div>
                     )}
                   </div>

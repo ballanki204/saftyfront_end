@@ -443,125 +443,133 @@ const Users = () => {
                     Add User
                   </Button>
                 </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Create User</DialogTitle>
-                      <DialogDescription>
-                        Add a new user to the system.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="create-name">Name</Label>
-                          <Input
-                            id="create-name"
-                            value={formData.name}
-                            onChange={(e) =>
-                              setFormData({ ...formData, name: e.target.value })
-                            }
-                            placeholder="Enter full name"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="create-email">Email</Label>
-                          <Input
-                            id="create-email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) =>
-                              setFormData({ ...formData, email: e.target.value })
-                            }
-                            placeholder="Enter email address"
-                          />
-                        </div>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create User</DialogTitle>
+                    <DialogDescription>
+                      Add a new user to the system.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="create-name">Name</Label>
+                        <Input
+                          id="create-name"
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          placeholder="Enter full name"
+                        />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="create-password">Password</Label>
-                          <Input
-                            id="create-password"
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) =>
-                              setFormData({ ...formData, password: e.target.value })
-                            }
-                            placeholder="Enter password"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="create-role">Role</Label>
-                          <Select
-                            value={formData.role}
-                            onValueChange={(value) =>
-                              setFormData({ ...formData, role: value })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Admin">Admin</SelectItem>
-                              <SelectItem value="Safety Manager">
-                                Safety Manager
-                              </SelectItem>
-                              <SelectItem value="Supervisor">Supervisor</SelectItem>
-                              <SelectItem value="Employee">Employee</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="create-department">Department</Label>
-                          <Input
-                            id="create-department"
-                            value={formData.department}
-                            onChange={(e) =>
-                              setFormData({ ...formData, department: e.target.value })
-                            }
-                            placeholder="Enter department"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="create-status">Status</Label>
-                          <Select
-                            value={formData.status}
-                            onValueChange={(value) =>
-                              setFormData({ ...formData, status: value })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Active">Active</SelectItem>
-                              <SelectItem value="Inactive">Inactive</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsCreateDialogOpen(false);
-                            setFormData({
-                              name: "",
-                              email: "",
-                              role: "",
-                              status: "Active",
-                              department: "",
-                              password: "",
-                            });
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={handleCreate}>Create User</Button>
+                      <div className="space-y-2">
+                        <Label htmlFor="create-email">Email</Label>
+                        <Input
+                          id="create-email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
+                          placeholder="Enter email address"
+                        />
                       </div>
                     </div>
-                  </DialogContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="create-password">Password</Label>
+                        <Input
+                          id="create-password"
+                          type="password"
+                          value={formData.password}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              password: e.target.value,
+                            })
+                          }
+                          placeholder="Enter password"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="create-role">Role</Label>
+                        <Select
+                          value={formData.role}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, role: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Admin">Admin</SelectItem>
+                            <SelectItem value="Safety Manager">
+                              Safety Manager
+                            </SelectItem>
+                            <SelectItem value="Supervisor">
+                              Supervisor
+                            </SelectItem>
+                            <SelectItem value="Employee">Employee</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="create-department">Department</Label>
+                        <Input
+                          id="create-department"
+                          value={formData.department}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              department: e.target.value,
+                            })
+                          }
+                          placeholder="Enter department"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="create-status">Status</Label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, status: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Inactive">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsCreateDialogOpen(false);
+                          setFormData({
+                            name: "",
+                            email: "",
+                            role: "",
+                            status: "Active",
+                            department: "",
+                            password: "",
+                          });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreate}>Create User</Button>
+                    </div>
+                  </div>
+                </DialogContent>
               </Dialog>
               <Dialog
                 open={isCreateGroupDialogOpen}
@@ -574,10 +582,7 @@ const Users = () => {
                   </Button>
                 </DialogTrigger>
               </Dialog>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/groups")}
-              >
+              <Button variant="outline" onClick={() => navigate("/groups")}>
                 See Groups
               </Button>
             </div>
